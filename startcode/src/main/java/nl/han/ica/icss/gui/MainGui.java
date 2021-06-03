@@ -21,13 +21,13 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 //We use this google library, because it makes life so much easier when
 //reading the examples icss files as packaged resource
 
 @SuppressWarnings("restriction")
 public class MainGui extends Application {
-
     private final static String title = "ICSS Tool September 2020, version 1";
     //Example files (for menu)
     private final static List<String> examples = Arrays.asList("level0.icss","level1.icss","level2.icss","level3.icss");

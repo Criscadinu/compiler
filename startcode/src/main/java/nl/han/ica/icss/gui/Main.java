@@ -1,5 +1,8 @@
 package nl.han.ica.icss.gui;
 
+import nl.han.ica.datastructures.HANStack;
+import nl.han.ica.icss.ast.ASTNode;
+
 import java.io.IOException;
 
 public class Main {

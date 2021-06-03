@@ -42,8 +42,83 @@ MUL: '*';
 ASSIGNMENT_OPERATOR: ':=';
 
 
-
-
 //--- PARSER: ---
-stylesheet: EOF;
+stylesheet: (variableAssignment | styleRule)*;
+
+variableAssignment
+    : variableReference
+    ASSIGNMENT_OPERATOR(boolLiteral | colorLiteral | pixelLiteral | percentageLiteral | scalarLiteral | addOperation | subtractOperation | multiplyOperation) SEMICOLON;
+
+styleRule
+    : (classSelector | idSelector | tagSelector)
+    OPEN_BRACE
+    declaration+
+    CLOSE_BRACE
+    ;
+
+declaration
+    : property
+      COLON
+      (colorLiteral | pixelLiteral | percentageLiteral | variableReference | scalarLiteral | boolLiteral | addOperation | subtractOperation | multiplyOperation)
+      SEMICOLON
+    ;
+
+classSelector
+    : CLASS_IDENT
+    ;
+
+idSelector
+    : ID_IDENT
+    ;
+
+tagSelector
+    : LOWER_IDENT
+    ;
+
+boolLiteral
+    : TRUE
+    | FALSE
+    ;
+
+colorLiteral
+    : COLOR
+    ;
+
+percentageLiteral
+    : PERCENTAGE
+    ;
+
+pixelLiteral
+    : PIXELSIZE
+    ;
+
+scalarLiteral
+    : SCALAR
+    ;
+
+variableReference
+    : CAPITAL_IDENT
+    ;
+
+property
+    : LOWER_IDENT
+    ;
+
+addOperation
+    : (scalarLiteral | pixelLiteral | variableReference)
+    PLUS
+      (scalarLiteral | pixelLiteral | variableReference | addOperation | subtractOperation | multiplyOperation)
+    ;
+
+subtractOperation
+    : (scalarLiteral | pixelLiteral | variableReference)
+    MIN
+      (scalarLiteral | pixelLiteral | variableReference  | addOperation | subtractOperation | multiplyOperation)
+    ;
+
+multiplyOperation
+    : (scalarLiteral | pixelLiteral | variableReference)
+    MUL
+      (scalarLiteral | pixelLiteral | variableReference  | addOperation | subtractOperation | multiplyOperation)
+    ;
 
