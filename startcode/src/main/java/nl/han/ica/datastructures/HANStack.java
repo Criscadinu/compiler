@@ -1,10 +1,8 @@
 package nl.han.ica.datastructures;
 
-import nl.han.ica.icss.ast.ASTNode;
-
 import java.util.ArrayList;
 
-public class HANStack<T> implements IHANStack<T> {
+public class HANStack<T> implements IHANStack<T> { // exception handling
     private ArrayList<T> stack;
 
     public HANStack() {
@@ -21,9 +19,9 @@ public class HANStack<T> implements IHANStack<T> {
         if (stack.isEmpty()) {
             return null;
         }
-        T tmp = stack.get( stack.size()-1 );
+        T temporary = stack.get(stack.size()-1 );
         stack.remove(stack.size()-1);
-        return tmp;
+        return temporary;
     }
 
     @Override
@@ -32,9 +30,5 @@ public class HANStack<T> implements IHANStack<T> {
             return null;
         }
         return stack.get(stack.size()-1);
-    }
-
-    public ArrayList<T> getStack() {
-        return stack;
     }
 }
