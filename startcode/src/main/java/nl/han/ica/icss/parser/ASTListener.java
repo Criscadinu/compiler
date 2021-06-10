@@ -221,6 +221,17 @@ public class ASTListener extends ICSSBaseListener {
 		currentContainer.peek().addChild(token);
 	}
 
+	@Override
+	public void enterPercentageLiteral(ICSSParser.PercentageLiteralContext ctx) {
+		currentContainer.push(new PercentageLiteral(ctx.PERCENTAGE().toString()));
+	}
+
+	@Override
+	public void exitPercentageLiteral(ICSSParser.PercentageLiteralContext ctx) {
+		PercentageLiteral token = (PercentageLiteral) currentContainer.pop();
+		currentContainer.peek().addChild(token);
+	}
+
 	public AST getAST() {
 		return ast;
     }

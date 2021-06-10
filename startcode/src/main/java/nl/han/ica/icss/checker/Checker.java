@@ -1,21 +1,15 @@
 package nl.han.ica.icss.checker;
 
-import nl.han.ica.datastructures.HANLinkedList;
-import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
-import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
-
 import java.util.ArrayList;
 
 public class Checker {
-    private IHANLinkedList<ASTNode> variableTypes;
-    private ArrayList<VariableReference> availableVariables = new ArrayList<>();
+    private final ArrayList<VariableReference> availableVariables = new ArrayList<>();
 
     public void check(AST ast) {
-        variableTypes = new HANLinkedList<>();
         validateNodes(ast.root.getChildren());
     }
 
@@ -24,14 +18,45 @@ public class Checker {
             getUndefinedVariables(node);
             checkValidOperandsForAddOrSubtractOperation(node);
             checkValidOperandForMultiplyOperation(node);
+            checkValidPropertyValueType(node);
 
             validateNodes(node.getChildren());
         }
     }
 
+    private void checkValidPropertyValueType(ASTNode node) {
+        if (node instanceof Declaration) {
+            if(node.getChildren().get(0).getNodeLabel().equals("Property: (background-color)") | node.getChildren().get(0).getNodeLabel().equals("Property: (color)")) {
+                checkColorProperties(node);
+            } else if(node.getChildren().get(0).getNodeLabel().equals("Property: (width)") | node.getChildren().get(0).getNodeLabel().equals("Property: (height")) {
+                checkWidthAndHeightProperties(node);
+            }
+        }
+    }
+
+    private void checkWidthAndHeightProperties(ASTNode node) {
+        String literal = getLiteralWithoutValue(node.getChildren().get(1).getNodeLabel());
+        if(!literal.equals("Pixel literal") && !literal.equals("Percentage literal")) {
+            node.setError("Wrong property type");
+        }
+    }
+
+    private void checkColorProperties(ASTNode node) {
+        String literal = getLiteralWithoutValue(node.getChildren().get(1).getNodeLabel());
+        if(!literal.equals("Color literal")) {
+            node.setError("Wrong property type");
+        }
+    }
+
+    private String getLiteralWithoutValue(String literal) {
+        System.out.println(literal);
+        int index = literal.indexOf("(");
+        return literal.substring(0, index - 1);
+    }
+
     private void checkValidOperandsForAddOrSubtractOperation(ASTNode node) {
         if (node instanceof AddOperation | node instanceof SubtractOperation) {
-            if(node.getChildren().get(0).getClass().getName() != node.getChildren().get(1).getClass().getName()) {
+            if(!node.getChildren().get(0).getClass().getName().equals(node.getChildren().get(1).getClass().getName())) {
                 node.setError("Operands are not of the same type"); // %literal1 "+" %literal2 + "are not of the same type
             }
         }
