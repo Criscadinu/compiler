@@ -48,7 +48,7 @@ stylesheet: (variableAssignment | styleRule)*;
 variableAssignment
     : variableReference
     ASSIGNMENT_OPERATOR
-    (boolLiteral | colorLiteral | pixelLiteral | percentageLiteral | scalarLiteral | addOperation | subtractOperation | multiplyOperation)
+    (boolLiteral | colorLiteral | pixelLiteral | percentageLiteral | scalarLiteral | operation)
     SEMICOLON
     ;
 
@@ -62,7 +62,7 @@ styleRule
 declaration
     : property
       COLON
-      (colorLiteral | pixelLiteral | percentageLiteral | variableReference | scalarLiteral | boolLiteral | addOperation | subtractOperation | multiplyOperation)
+      (colorLiteral | pixelLiteral | percentageLiteral | variableReference | scalarLiteral | boolLiteral | operation)
       SEMICOLON
     ;
 
@@ -107,22 +107,26 @@ property
     : LOWER_IDENT
     ;
 
+operation
+    : (addOperation | subtractOperation | multiplyOperation)
+    ;
+
 addOperation
-    : (scalarLiteral | pixelLiteral | variableReference)
+    : (scalarLiteral | pixelLiteral | variableReference | percentageLiteral)
     PLUS
-      (scalarLiteral | pixelLiteral | variableReference | addOperation | subtractOperation | multiplyOperation)
+      (scalarLiteral | pixelLiteral | variableReference | percentageLiteral | operation)
     ;
 
 subtractOperation
-    : (scalarLiteral | pixelLiteral | variableReference)
+    : (scalarLiteral | pixelLiteral | variableReference | percentageLiteral)
     MIN
-      (scalarLiteral | pixelLiteral | variableReference  | addOperation | subtractOperation | multiplyOperation)
+      (scalarLiteral | pixelLiteral | variableReference  | percentageLiteral | operation)
     ;
 
 multiplyOperation
-    : (scalarLiteral | pixelLiteral | variableReference)
+    : (scalarLiteral | pixelLiteral | variableReference | percentageLiteral)
     MUL
-      (scalarLiteral | pixelLiteral | variableReference  | addOperation | subtractOperation | multiplyOperation)
+      (scalarLiteral | pixelLiteral | variableReference  | percentageLiteral | operation)
     ;
 
 ifClause

@@ -127,36 +127,28 @@ public class ASTListener extends ICSSBaseListener {
 	}
 
 	@Override
-	public void enterAddOperation(ICSSParser.AddOperationContext ctx) {
-		currentContainer.push(new AddOperation());
+	public void enterOperation(ICSSParser.OperationContext ctx) {
+		if (ctx.addOperation() != null) {
+			currentContainer.push(new AddOperation());
+		} else if (ctx.subtractOperation() != null) {
+			currentContainer.push(new SubtractOperation());
+		} else if (ctx.multiplyOperation() != null) {
+			currentContainer.push(new MultiplyOperation());
+		}
 	}
 
 	@Override
-	public void exitAddOperation(ICSSParser.AddOperationContext ctx) {
-		AddOperation token = (AddOperation) currentContainer.pop();
-		currentContainer.peek().addChild(token);
-	}
-
-	@Override
-	public void enterSubtractOperation(ICSSParser.SubtractOperationContext ctx) {
-		currentContainer.push(new SubtractOperation());
-	}
-
-	@Override
-	public void exitSubtractOperation(ICSSParser.SubtractOperationContext ctx) {
-		SubtractOperation token = (SubtractOperation) currentContainer.pop();
-		currentContainer.peek().addChild(token);
-	}
-
-	@Override
-	public void enterMultiplyOperation(ICSSParser.MultiplyOperationContext ctx) {
-		currentContainer.push(new MultiplyOperation());
-	}
-
-	@Override
-	public void exitMultiplyOperation(ICSSParser.MultiplyOperationContext ctx) {
-		MultiplyOperation token = (MultiplyOperation) currentContainer.pop();
-		currentContainer.peek().addChild(token);
+	public void exitOperation(ICSSParser.OperationContext ctx) {
+		if (ctx.addOperation() != null) {
+			AddOperation token = (AddOperation) currentContainer.pop();
+			currentContainer.peek().addChild(token);
+		} else if (ctx.subtractOperation() != null) {
+			SubtractOperation token = (SubtractOperation) currentContainer.pop();
+			currentContainer.peek().addChild(token);
+		} else if (ctx.multiplyOperation() != null) {
+			MultiplyOperation token = (MultiplyOperation) currentContainer.pop();
+			currentContainer.peek().addChild(token);
+		}
 	}
 
 	@Override
