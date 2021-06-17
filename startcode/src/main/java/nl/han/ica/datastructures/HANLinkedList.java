@@ -1,7 +1,6 @@
 package nl.han.ica.datastructures;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class HANLinkedList<T> implements IHANLinkedList<T> {
     public ArrayList<T> list;

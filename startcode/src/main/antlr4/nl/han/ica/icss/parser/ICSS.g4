@@ -48,14 +48,14 @@ stylesheet: (variableAssignment | styleRule)*;
 variableAssignment
     : variableReference
     ASSIGNMENT_OPERATOR
-    (boolLiteral | colorLiteral | pixelLiteral | percentageLiteral | scalarLiteral | operation)
+    (boolLiteral | colorLiteral | pixelLiteral | percentageLiteral | scalarLiteral | operation | variableReference)
     SEMICOLON
     ;
 
 styleRule
     : (classSelector | idSelector | tagSelector)
     OPEN_BRACE
-    (declaration | ifClause)*
+    (declaration | ifClause | variableAssignment)*
     CLOSE_BRACE
     ;
 
@@ -131,7 +131,7 @@ multiplyOperation
 
 ifClause
     : IF BOX_BRACKET_OPEN variableReference BOX_BRACKET_CLOSE OPEN_BRACE
-    (ifClause | declaration | elseClause)*
+    (ifClause | declaration | elseClause | variableAssignment)*
     CLOSE_BRACE
     ;
 
@@ -139,4 +139,3 @@ elseClause
     : CLOSE_BRACE ELSE OPEN_BRACE
     declaration
     ;
-
