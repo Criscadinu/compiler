@@ -3,11 +3,14 @@ package nl.han.ica.icss.checker;
 import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
+import nl.han.ica.icss.ast.operations.AddOperation;
+import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.properties.*;
 import nl.han.ica.icss.ast.types.ExpressionType;
 import nl.han.ica.icss.handler.typeHandlers.*;
-import nl.han.ica.icss.handler.typeHandlers.operationHandler.AddOrSubtractOperationHandler;
+import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.AddOrSubtractOperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.OperationHandler;
+import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.MultiplyOperationHandler;
 import nl.han.ica.icss.utils.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,10 +19,11 @@ public class Checker {
     private HANLinkedList<HashMap<String, ExpressionType>> variableTypes;
     private HANLinkedList<HashMap<String, String>> variableValues;
     private final ArrayList<ExpressionTypehandler> expressionTypehandlers = new ArrayList<>();
-    private final ArrayList<OperationHandler> operationHandlers = new ArrayList<>();
+    private OperationHandler operationHandler;
 
     public Checker() {
         setExpressionTypeHandlers();
+        operationHandler = new OperationHandler();
     }
 
     private void setExpressionTypeHandlers() {
@@ -30,9 +34,7 @@ public class Checker {
         expressionTypehandlers.add(new ScalarExpressionTypeHandler());
     }
 
-    private void setOperationHandlers() {
-        operationHandlers.add(new AddOrSubtractOperationHandler(variableTypes));
-    }
+
 
     public void check(AST ast) {
         variableTypes = new HANLinkedList<>();
@@ -43,7 +45,6 @@ public class Checker {
     private void validateNodes(ArrayList<ASTNode> nodes) {
         for(ASTNode node : nodes) {
             checkForUndefinedVariables(node);
-            setOperationHandlers();
             checkForUnApprovedOperations(node);
             checkForValidTypes(node);
 
@@ -105,47 +106,10 @@ public class Checker {
     }
 
     private void checkForUnApprovedOperations(ASTNode node) {
-        checkForUnApprovedAddOrSubtractOperation(node);
-//        getUnApprovedMultiplyOperation(node);
-    }
-
-    private void checkForUnApprovedAddOrSubtractOperation(ASTNode node) {
-        for (OperationHandler handler : operationHandlers) {
-            if (handler.isAddOrSubtractOperation(node)) {
-                handler.execute(node);
-            }
-        }
-    }
-
-    private boolean compareNonOperationalOperands(String leftOperand, String rightOperand) {
-        return leftOperand.equals(rightOperand);
-    }
-
-    private void getUnApprovedMultiplyOperation(ASTNode node) {
-
-    }
-
-    private void checkIfAllChildrenAreScalar(ASTNode node) {
-        ASTNode operandRight = node.getChildren().get(1);
-        if (! ((operandRight.getChildren().get(0)) instanceof ScalarLiteral)) {
-            node.setError("Left child not scalar");
-        } else if (!(operandRight.getChildren().get(1) instanceof Operation) && !(operandRight.getChildren().get(1) instanceof ScalarLiteral)) {
-            node.setError("Right child not scalar");
-        } else if (node.getChildren().get(1).getChildren().get(1) instanceof Operation) {
-            checkIfAllChildrenAreScalar(node.getChildren().get(1));
-        }
-    }
-
-    private void isColorLiteral(ASTNode operandLeft, ASTNode operandRight) {
-        for (int i = 0; i < variableTypes.getSize(); i++) {
-            String variableKey1 = operandLeft.toString().substring(20, operandLeft.getNodeLabel().length());
-//            String variableKey2 = operandRight.toString().substring(20, operandRight.getNodeLabel().length());
-            if (variableTypes.get(i).containsKey(variableKey1)) {
-                ExpressionType literal = variableTypes.get(i).get(variableKey1);
-                if (literal.equals(ExpressionType.COLOR)) {
-                    operandLeft.setError("Is van het type COLOR");
-                }
-            }
+        if (node instanceof AddOperation || node instanceof SubtractOperation) {
+            operationHandler.execute(node, new AddOrSubtractOperationHandler(variableTypes));
+        } else {
+            operationHandler.execute(node, new MultiplyOperationHandler(variableTypes));
         }
     }
 
