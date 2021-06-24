@@ -2,6 +2,12 @@ grammar ICSS;
 
 //--- LEXER: ---
 
+//Properties
+COLORPROPERTY: 'color';
+BACKGROUNDCOLORPROPERTY: 'background-color';
+WIDTHPROPERTY: 'width';
+HEIGHTPROPERTY: 'height';
+
 // IF support:
 IF: 'if';
 ELSE: 'else';
@@ -41,7 +47,6 @@ MIN: '-';
 MUL: '*';
 ASSIGNMENT_OPERATOR: ':=';
 
-
 //--- PARSER: ---
 stylesheet: (variableAssignment | styleRule)*;
 
@@ -60,7 +65,7 @@ styleRule
     ;
 
 declaration
-    : property
+    : propertyName
       COLON
       (colorLiteral | pixelLiteral | percentageLiteral | variableReference | scalarLiteral | boolLiteral | operation)
       SEMICOLON
@@ -103,8 +108,8 @@ variableReference
     : CAPITAL_IDENT
     ;
 
-property
-    : LOWER_IDENT
+propertyName
+    : (COLORPROPERTY | BACKGROUNDCOLORPROPERTY | WIDTHPROPERTY | HEIGHTPROPERTY)
     ;
 
 operation

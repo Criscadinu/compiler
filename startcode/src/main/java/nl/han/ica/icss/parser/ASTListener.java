@@ -8,6 +8,10 @@ import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
+import nl.han.ica.icss.ast.properties.BackgroundProperty;
+import nl.han.ica.icss.ast.properties.ColorProperty;
+import nl.han.ica.icss.ast.properties.HeightProperty;
+import nl.han.ica.icss.ast.properties.WidthProperty;
 import nl.han.ica.icss.ast.selectors.ClassSelector;
 import nl.han.ica.icss.ast.selectors.IdSelector;
 import nl.han.ica.icss.ast.selectors.TagSelector;
@@ -116,12 +120,23 @@ public class ASTListener extends ICSSBaseListener {
 	}
 
 	@Override
-	public void enterProperty(ICSSParser.PropertyContext ctx) {
-		currentContainer.push(new PropertyName(ctx.LOWER_IDENT().toString()));
+	public void enterPropertyName(ICSSParser.PropertyNameContext ctx) {
+		if (ctx.COLORPROPERTY() != null) {
+			currentContainer.push(new ColorProperty());
+		}
+		if (ctx.BACKGROUNDCOLORPROPERTY() != null) {
+			currentContainer.push(new BackgroundProperty());
+		}
+		if (ctx.WIDTHPROPERTY() != null) {
+			currentContainer.push(new WidthProperty());
+		}
+		if (ctx.HEIGHTPROPERTY() != null) {
+			currentContainer.push(new HeightProperty());
+		}
 	}
 
 	@Override
-	public void exitProperty(ICSSParser.PropertyContext ctx) {
+	public void exitPropertyName(ICSSParser.PropertyNameContext ctx) {
 		PropertyName token = (PropertyName) currentContainer.pop();
 		currentContainer.peek().addChild(token);
 	}
