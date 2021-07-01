@@ -25,9 +25,8 @@ public class MultiplyOperationHandler implements Handler {
     }
 
     @Override
-    public void handle(ASTNode leftOperand, ASTNode rightOperand, ASTNode node) {
-        this.leftOperand = leftOperand;
-        this.rightOperand = rightOperand;
+    public void handle(ASTNode node) {
+        setOperands(node);
 
         if (rightOperandIsAddOrSubtractOperation(rightOperand)) {
             if (!leftChildOperandIsEqualToLeftOperand(leftOperand, rightOperand) && !oneOrMoreOperandsIsVariableReference(leftOperand, rightOperand)) {
@@ -39,6 +38,11 @@ public class MultiplyOperationHandler implements Handler {
         } else if (!operandsAreEqual(leftOperand, rightOperand)) {
             setError(node);
         }
+    }
+
+    public void setOperands(ASTNode node) {
+        leftOperand = node.getChildren().get(0);
+        rightOperand = node.getChildren().get(1);
     }
 
     private boolean operandsAreEqual(ASTNode leftOperand, ASTNode rightOperand) {

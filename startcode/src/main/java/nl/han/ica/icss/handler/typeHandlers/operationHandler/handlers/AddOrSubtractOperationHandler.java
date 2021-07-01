@@ -25,10 +25,8 @@ public class AddOrSubtractOperationHandler implements Handler {
     }
 
     @Override
-    public void handle(ASTNode leftOperand, ASTNode rightOperand, ASTNode node) {
-        this.leftOperand = leftOperand;
-        this.rightOperand = rightOperand;
-
+    public void handle(ASTNode node) {
+        setOperands(node);
         if (rightOperandIsAddOrSubtractOperation(rightOperand)) {
             if (!leftChildOperandIsEqualToLeftOperand(leftOperand, rightOperand) && !oneOrMoreOperandsIsVariableReference(leftOperand, rightOperand)) {
                 setError(node);
@@ -41,12 +39,8 @@ public class AddOrSubtractOperationHandler implements Handler {
         }
     }
 
-    private boolean operandsAreEqual(ASTNode leftOperand, ASTNode rightOperand) {
-        return leftOperand.getClass().getSimpleName().equals(rightOperand.getClass().getSimpleName());
-    }
-
-    private boolean oneOrMoreOperandsIsVariableReference(ASTNode leftOperand, ASTNode rightOperand) {
-        return leftOperand instanceof VariableReference || rightOperand instanceof VariableReference;
+    private boolean rightOperandIsAddOrSubtractOperation(ASTNode rightOperand) {
+        return rightOperand instanceof AddOperation || rightOperand instanceof SubtractOperation;
     }
 
     private boolean leftChildOperandIsEqualToLeftOperand(ASTNode leftOperand, ASTNode rightOperand) {
@@ -56,8 +50,8 @@ public class AddOrSubtractOperationHandler implements Handler {
         return leftOperandType.equals(leftOperandTypeOfRightOperand);
     }
 
-    private boolean rightOperandIsAddOrSubtractOperation(ASTNode rightOperand) {
-        return rightOperand instanceof AddOperation || rightOperand instanceof SubtractOperation;
+    private boolean oneOrMoreOperandsIsVariableReference(ASTNode leftOperand, ASTNode rightOperand) {
+        return leftOperand instanceof VariableReference || rightOperand instanceof VariableReference;
     }
 
     public void setVariableTypesInOperation(ASTNode leftOperand, ASTNode rightOperand) {
@@ -75,10 +69,20 @@ public class AddOrSubtractOperationHandler implements Handler {
         }
     }
 
+    public void setOperands(ASTNode node) {
+        leftOperand = node.getChildren().get(0);
+        rightOperand = node.getChildren().get(1);
+    }
+
+    private boolean operandsAreEqual(ASTNode leftOperand, ASTNode rightOperand) {
+        return leftOperand.getClass().getSimpleName().equals(rightOperand.getClass().getSimpleName());
+    }
+
     public String getOperandAsString(ASTNode node) {
         int startingIndex = node.toString().indexOf("(") + 1;
         return node.toString().substring(startingIndex, node.getNodeLabel().length());
     }
+
     public void validate(ASTNode node) {
         if (variableTypesInOperation.size() > 1) {
             compareExpressionTypes(node);

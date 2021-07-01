@@ -34,8 +34,6 @@ public class Checker {
         expressionTypehandlers.add(new ScalarExpressionTypeHandler());
     }
 
-
-
     public void check(AST ast) {
         variableTypes = new HANLinkedList<>();
         variableValues = new HANLinkedList<>();
@@ -108,9 +106,10 @@ public class Checker {
     private void checkForUnApprovedOperations(ASTNode node) {
         if (node instanceof AddOperation || node instanceof SubtractOperation) {
             operationHandler.execute(node, new AddOrSubtractOperationHandler(variableTypes));
-        } else {
-            operationHandler.execute(node, new MultiplyOperationHandler(variableTypes));
         }
+//        else {
+//            operationHandler.execute(node, new MultiplyOperationHandler(variableTypes));
+//        }
     }
 
     private void checkForValidTypes(ASTNode node) {
