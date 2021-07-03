@@ -2,24 +2,26 @@ package nl.han.ica.icss.checker;
 
 import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.icss.ast.*;
-import nl.han.ica.icss.ast.literals.ScalarLiteral;
+import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.AddOperation;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.properties.*;
 import nl.han.ica.icss.ast.types.ExpressionType;
 import nl.han.ica.icss.handler.typeHandlers.*;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.AddOrSubtractOperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.OperationHandler;
-import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.MultiplyOperationHandler;
 import nl.han.ica.icss.utils.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class Checker {
     private HANLinkedList<HashMap<String, ExpressionType>> variableTypes;
-    private HANLinkedList<HashMap<String, String>> variableValues;
+    private HANLinkedList<HashMap<String, Object>> variableValues;
     private final ArrayList<ExpressionTypehandler> expressionTypehandlers = new ArrayList<>();
     private OperationHandler operationHandler;
+    private Stack<String> operators = new Stack<String>();
+    private Queue<Object> output = new LinkedList<>();
+    int precedence = 0;
 
     public Checker() {
         setExpressionTypeHandlers();
@@ -44,6 +46,7 @@ public class Checker {
         for(ASTNode node : nodes) {
             checkForUndefinedVariables(node);
             checkForUnApprovedOperations(node);
+            arrangeTokens(node);
             checkForValidTypes(node);
 
             validateNodes(node.getChildren());
@@ -51,29 +54,41 @@ public class Checker {
     }
 
     private void checkForUndefinedVariables(ASTNode node) {
-        selectAvailableVariables(node);
-        setUndefinedVariablesError(node);
-    }
-
-    private void selectAvailableVariables(ASTNode node) {
         if (node instanceof VariableAssignment) {
             int startOfVariableName = 20;
             String name = node.getNodeLabel().substring(startOfVariableName, node.getNodeLabel().length() - 1);
             ASTNode type = node.getChildren().get(1);
-            int index = type.getNodeLabel().lastIndexOf("(") + 1;
-            String value = type.getNodeLabel().substring(index, type.getNodeLabel().length() - 1);
-            setAvailableVariablesList(name, value);
-            setExpressionTypeForHashmap(name, type);
+            setVariableValues(name, type);
+            setVariableTypes(name, type);
         }
+        setUndefinedVariablesError(node);
     }
 
-    private void setAvailableVariablesList(String name, String value) {
-        HashMap<String, String> hashmapWithValues = new HashMap<>();
+    private void setVariableValues(String name, ASTNode type) {
+        Object value = null;
+
+        if (type instanceof PixelLiteral) {
+            PixelLiteral literal = (PixelLiteral) type;
+            value = literal.value;
+        } else if (type instanceof PercentageLiteral) {
+            PercentageLiteral literal = (PercentageLiteral) type;
+            value = literal.value;
+        } else if (type instanceof ScalarLiteral) {
+            ScalarLiteral literal = (ScalarLiteral) type;
+            value = literal.value;
+        } else if (type instanceof BoolLiteral) {
+            BoolLiteral literal = (BoolLiteral) type;
+            value = literal.value;
+        } else if (type instanceof ColorLiteral) {
+            ColorLiteral literal = (ColorLiteral) type;
+            value = literal.value;
+        }
+        HashMap<String, Object> hashmapWithValues = new HashMap<>();
         hashmapWithValues.put(name, value);
         variableValues.addFirst(hashmapWithValues);
     }
 
-    private void setExpressionTypeForHashmap(String name, ASTNode type) {
+    private void setVariableTypes(String name, ASTNode type) {
         for (ExpressionTypehandler expressionTypeHandler : expressionTypehandlers) {
             if (expressionTypeHandler.isSpecificInstance(type)) {
                 HashMap<String, ExpressionType> hashmap = new HashMap<>();
@@ -107,9 +122,49 @@ public class Checker {
         if (node instanceof AddOperation || node instanceof SubtractOperation) {
             operationHandler.execute(node, new AddOrSubtractOperationHandler(variableTypes));
         }
-//        else {
+        else if (node instanceof MultiplyOperation){
 //            operationHandler.execute(node, new MultiplyOperationHandler(variableTypes));
-//        }
+        }
+    }
+
+    private void arrangeTokens(ASTNode node) {
+        if (node instanceof Operation) {
+            if (node.getChildren().get(0) instanceof Literal) {
+                output.add(getValue(node.getChildren().get(0)));
+                if (!(node.getChildren().get(1) instanceof Operation)) {
+                    output.add(getValue(node.getChildren().get(1)));
+                }
+            }
+            if (operators.empty()) {
+                operators.add(node.getNodeLabel());
+            } else if (getPrecedence(node.getNodeLabel()) < precedence) {
+                output.add(operators.pop());
+                operators.add(node.getNodeLabel());
+            } else {
+                operators.add(node.getNodeLabel());
+            }
+            precedence = getPrecedence(node.getNodeLabel());
+        }
+    }
+
+    private int getValue(ASTNode literal) {
+        int value = 0;
+
+        if (literal instanceof PixelLiteral) {
+            PixelLiteral number = (PixelLiteral) literal;
+            value = number.value;
+        } else if (literal instanceof PercentageLiteral) {
+            PercentageLiteral number = (PercentageLiteral) literal;
+            value = number.value;
+        } else if (literal instanceof ScalarLiteral) {
+            ScalarLiteral number = (ScalarLiteral) literal;
+            value = number.value;
+        }
+        return value;
+    }
+
+    private int getPrecedence(String nodeLabel) {
+        return nodeLabel.equals("Add") || nodeLabel.equals("Subtract") ? 1 : 2;
     }
 
     private void checkForValidTypes(ASTNode node) {
