@@ -11,7 +11,11 @@ import nl.han.ica.icss.ast.types.ExpressionType;
 import nl.han.ica.icss.handler.typeHandlers.*;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.AddOrSubtractOperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.OperationHandler;
-import nl.han.ica.icss.utils.*;
+import nl.han.ica.icss.utils.comparator.ColorComparator;
+import nl.han.ica.icss.utils.comparator.ICompare;
+import nl.han.ica.icss.utils.comparator.WidthAndHeightComparator;
+import nl.han.ica.icss.utils.comparator.calculator.Calculator;
+
 import java.util.*;
 
 public class Checker {
@@ -19,11 +23,10 @@ public class Checker {
     private HANLinkedList<HashMap<String, Object>> variableValues;
     private final ArrayList<ExpressionTypehandler> expressionTypehandlers = new ArrayList<>();
     private OperationHandler operationHandler;
-    private Stack<String> operators = new Stack<String>();
-    private Queue<Object> output = new LinkedList<>();
-    int precedence = 0;
+    private Calculator calculator;
 
     public Checker() {
+        this.calculator = new Calculator();
         setExpressionTypeHandlers();
         operationHandler = new OperationHandler();
     }
@@ -46,7 +49,7 @@ public class Checker {
         for(ASTNode node : nodes) {
             checkForUndefinedVariables(node);
             checkForUnApprovedOperations(node);
-            arrangeTokens(node);
+            calculateSumOfOperation(node);
             checkForValidTypes(node);
 
             validateNodes(node.getChildren());
@@ -127,44 +130,12 @@ public class Checker {
         }
     }
 
-    private void arrangeTokens(ASTNode node) {
+    private void calculateSumOfOperation(ASTNode node) {
         if (node instanceof Operation) {
-            if (node.getChildren().get(0) instanceof Literal) {
-                output.add(getValue(node.getChildren().get(0)));
-                if (!(node.getChildren().get(1) instanceof Operation)) {
-                    output.add(getValue(node.getChildren().get(1)));
-                }
-            }
-            if (operators.empty()) {
-                operators.add(node.getNodeLabel());
-            } else if (getPrecedence(node.getNodeLabel()) < precedence) {
-                output.add(operators.pop());
-                operators.add(node.getNodeLabel());
-            } else {
-                operators.add(node.getNodeLabel());
-            }
-            precedence = getPrecedence(node.getNodeLabel());
+            this.calculator.setTokens(node);
         }
-    }
-
-    private int getValue(ASTNode literal) {
-        int value = 0;
-
-        if (literal instanceof PixelLiteral) {
-            PixelLiteral number = (PixelLiteral) literal;
-            value = number.value;
-        } else if (literal instanceof PercentageLiteral) {
-            PercentageLiteral number = (PercentageLiteral) literal;
-            value = number.value;
-        } else if (literal instanceof ScalarLiteral) {
-            ScalarLiteral number = (ScalarLiteral) literal;
-            value = number.value;
-        }
-        return value;
-    }
-
-    private int getPrecedence(String nodeLabel) {
-        return nodeLabel.equals("Add") || nodeLabel.equals("Subtract") ? 1 : 2;
+        int sum = calculator.calculate();
+        System.out.println(sum);
     }
 
     private void checkForValidTypes(ASTNode node) {
