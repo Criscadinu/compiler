@@ -9,7 +9,6 @@ import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.VariablesH
 import nl.han.ica.icss.utils.comparator.ColorComparator;
 import nl.han.ica.icss.utils.comparator.*;
 import nl.han.ica.icss.utils.comparator.calculator.Calculator;
-
 import java.util.*;
 
 public class Checker {
@@ -31,7 +30,7 @@ public class Checker {
         for(ASTNode node : nodes) {
             variablesHandler.handle(node);
             checkForUnApprovedOperations(node);
-//            calculateSumOfOperation(node);
+            calculateSumOfOperation(node);
             checkForValidTypes(node);
 
             validateNodes(node.getChildren());
@@ -49,7 +48,7 @@ public class Checker {
 
     private void calculateSumOfOperation(ASTNode node) {
         if (node instanceof Operation) {
-            this.calculator.setTokens(node, variablesHandler.getSymbolTable());
+            this.calculator.setTokens(node, variablesHandler);
         }
         int sum = calculator.calculate();
     }

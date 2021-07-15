@@ -77,7 +77,18 @@ public class VariablesHandler implements Handler{
         return symbolTable;
     }
 
-    public Integer getValue(ASTNode node) {
-        return 10;
+    public int getValueFrom(ASTNode node) {
+        int value = 0;
+        for (int i = 0; i < symbolTable.getSize(); i++) {
+            if (symbolTable.get(i).get("name").equals(getVariableNameFrom(node))) {
+                value = (int) symbolTable.get(i).get("value");
+            }
+        }
+        return value;
+    }
+
+    public String getVariableNameFrom(ASTNode variableReference) {
+        int startingIndex = variableReference.toString().indexOf("(") + 1;
+        return variableReference.toString().substring(startingIndex, variableReference.getNodeLabel().length());
     }
 }

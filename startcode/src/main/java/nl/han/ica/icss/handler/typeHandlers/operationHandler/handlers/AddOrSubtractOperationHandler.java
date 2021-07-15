@@ -27,8 +27,9 @@ public class AddOrSubtractOperationHandler implements Handler {
     @Override
     public void handle(ASTNode node) {
         setOperands(node);
+
         if (rightOperandIsAddOrSubtractOperation()) {
-            checkForUnequalChildOperand(node);
+            checkForUnequalChildOperands(node);
         } else if (oneOrMoreOperandsIsVariableReference()) {
             setVariableTypesInOperation();
             validate(node);
@@ -46,23 +47,40 @@ public class AddOrSubtractOperationHandler implements Handler {
         return rightOperand instanceof AddOperation || rightOperand instanceof SubtractOperation;
     }
 
-    private void checkForUnequalChildOperand(ASTNode node) {
-        if (leftChildOperandIsEqualToLeftOperand() || oneOrMoreOperandsIsVariableReference()) {
-            return;
+    private void checkForUnequalChildOperands(ASTNode node) {
+        if (!leftChildOperandIsEqualToLeftOperand()) {
+            setError(node);
         }
-        setError(node);
     }
 
     private boolean leftChildOperandIsEqualToLeftOperand() {
         String leftOperandType = leftOperand.getClass().getSimpleName();
         String leftOperandTypeOfRightOperand = rightOperand.getChildren().get(0).getClass().getSimpleName();
+        String name = getVariableNameFrom(leftOperand);
+
+        if (rightOperand.getChildren().get(0) instanceof VariableReference) {
+            String type = "";
+            for (int i = 0; i < symbolTable.getSize(); i++) {
+                if (symbolTable.get(i).get("name").equals(name)) {
+                    type = (String) symbolTable.get(i).get("type");
+                }
+            }
+            return leftOperandType.equals(type);
+        }
 
         return leftOperandType.equals(leftOperandTypeOfRightOperand);
+    }
+
+    public String getVariableNameFrom(ASTNode variableReference) {
+        int startingIndex = variableReference.toString().indexOf("(") + 1;
+        return variableReference.toString().substring(startingIndex, variableReference.getNodeLabel().length());
     }
 
     private boolean oneOrMoreOperandsIsVariableReference() {
         return leftOperand instanceof VariableReference || rightOperand instanceof VariableReference;
     }
+
+
 
     public void setVariableTypesInOperation() {
         String leftVariableName = getOperandAsString(leftOperand);

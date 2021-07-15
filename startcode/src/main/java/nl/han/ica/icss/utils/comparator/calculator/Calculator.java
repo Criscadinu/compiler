@@ -10,30 +10,28 @@ import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.VariablesHandler;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 
 public class Calculator {
-    private Stack<String> operators = new Stack<>();
-    private Queue<Object> output = new LinkedList<>();
-    private Stack<Integer> operands = new Stack<>();
-    private VariablesHandler handler = new VariablesHandler();
-    private HANLinkedList<HashMap<String, Object>> symbolTable;
+    private final Stack<String> shuntingYardOperators = new Stack<>();
+    private final Queue<Object> shuntingYardOutput = new LinkedList<>();
+    private final Stack<Integer> operands = new Stack<>();
+    private VariablesHandler handler;
 
     int precedence = 0;
 
-    public void setTokens(ASTNode node, HANLinkedList<HashMap<String, Object>> symbolTable) {
-        this.symbolTable = symbolTable;
+    public void setTokens(ASTNode node, VariablesHandler handler) {
+        this.handler = handler;
         arrangeTokens(node);
     }
 
     private void arrangeTokens(ASTNode node) {
         if (node instanceof Operation) {
-            setOperands(node);
-            setOperators(node);
+            addOperandsToShuntingYardOutput(node);
+            addOperatorsToShuntingYardOperators(node);
             precedence = getPrecedence(node.getNodeLabel());
             if (node.getChildren().get(1).getChildren().size() == 0) {
                 mergeDatastructures();
@@ -41,40 +39,40 @@ public class Calculator {
         }
     }
 
-    private void setOperands(ASTNode node) {
-        checkForVariableReferences(node);
+    private void addOperandsToShuntingYardOutput(ASTNode node) {
+        addVariableValuesToOutput(node);
         if (node.getChildren().get(0) instanceof Literal) {
-            output.add(getValue(node.getChildren().get(0)));
-            if (!(node.getChildren().get(1) instanceof Operation)) {
-                output.add(getValue(node.getChildren().get(1)));
+            shuntingYardOutput.add(getValueOf(node.getChildren().get(0)));
+            if (node.getChildren().get(1) instanceof Operation) {
+                shuntingYardOutput.add(getValueOf(node.getChildren().get(1)));
             }
         }
     }
 
-    private void checkForVariableReferences(ASTNode operation) {
+    private void addVariableValuesToOutput(ASTNode operation) {
         for (ASTNode node : operation.getChildren()) {
             if (node instanceof VariableReference) {
-                output.add(handler.getValue(node));
+                shuntingYardOutput.add(handler.getValueFrom(node));
             }
         }
     }
 
-    private void setOperators(ASTNode node) {
-        if (operators.empty()) {
-            operators.add(node.getNodeLabel());
+    private void addOperatorsToShuntingYardOperators(ASTNode node) {
+        if (shuntingYardOperators.empty()) {
+            shuntingYardOperators.add(node.getNodeLabel());
         } else if (getPrecedence(node.getNodeLabel()) < precedence) {
-            int lastNum = (int) output.remove();
-            output.add(operators.pop());
-            output.add(lastNum);
-            operators.add(node.getNodeLabel());
+            int lastNum = (int) shuntingYardOutput.remove();
+            shuntingYardOutput.add(shuntingYardOperators.pop());
+            shuntingYardOutput.add(lastNum);
+            shuntingYardOperators.add(node.getNodeLabel());
         } else {
-            operators.add(node.getNodeLabel());
+            shuntingYardOperators.add(node.getNodeLabel());
         }
     }
 
     private void mergeDatastructures() {
-        while (!operators.empty()) {
-            output.add(operators.pop());
+        while (!shuntingYardOperators.empty()) {
+            shuntingYardOutput.add(shuntingYardOperators.pop());
         }
     }
 
@@ -82,25 +80,25 @@ public class Calculator {
         return nodeLabel.equals("Add") || nodeLabel.equals("Subtract") ? 1 : 2;
     }
 
-    private int getValue(ASTNode literal) {
+    private int getValueOf(ASTNode literal) {
         int value = 0;
 
-//        if (literal instanceof PixelLiteral) {
-//            PixelLiteral number = (PixelLiteral) literal;
-//            value = number.value;
-//        } else if (literal instanceof PercentageLiteral) {
-//            PercentageLiteral number = (PercentageLiteral) literal;
-//            value = number.value;
-//        } else if (literal instanceof ScalarLiteral) {
-//            ScalarLiteral number = (ScalarLiteral) literal;
-//            value = number.value;
-//        }
+        if (literal instanceof PixelLiteral) {
+            PixelLiteral number = (PixelLiteral) literal;
+            value = (int) number.value;
+        } else if (literal instanceof PercentageLiteral) {
+            PercentageLiteral number = (PercentageLiteral) literal;
+            value = (int) number.value;
+        } else if (literal instanceof ScalarLiteral) {
+            ScalarLiteral number = (ScalarLiteral) literal;
+            value = (int) number.value;
+        }
         return value;
     }
 
     public int calculate() {
         int sum = 0;
-        for (Object token : output) {
+        for (Object token : shuntingYardOutput) {
             if (token instanceof Integer) {
                 operands.add((int) token);
             } else {
