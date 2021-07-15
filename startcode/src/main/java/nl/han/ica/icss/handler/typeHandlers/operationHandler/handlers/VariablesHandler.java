@@ -1,11 +1,7 @@
 package nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers;
 
 import nl.han.ica.datastructures.HANLinkedList;
-import nl.han.ica.icss.ast.ASTNode;
-import nl.han.ica.icss.ast.Literal;
-import nl.han.ica.icss.ast.VariableAssignment;
-import nl.han.ica.icss.ast.VariableReference;
-import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.types.ExpressionType;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +33,7 @@ public class VariablesHandler implements Handler{
     private void setSymbolTable(String name, ASTNode type) {
         HashMap<String, Object> variableDetails = new HashMap<>();
         variableDetails.put("name", name);
-        variableDetails.put("value", getValue(type));
+        variableDetails.put("value", getLiteralValue(type));
         variableDetails.put("type", getType(type));
         symbolTable.addFirst(variableDetails);
     }
@@ -52,7 +48,7 @@ public class VariablesHandler implements Handler{
         return type;
     }
 
-    private Object getValue(ASTNode expressionType) {
+    private Object getLiteralValue(ASTNode expressionType) {
         Literal literal = (Literal) expressionType;
         return literal.value;
     }
@@ -79,5 +75,9 @@ public class VariablesHandler implements Handler{
 
     public HANLinkedList getSymbolTable() {
         return symbolTable;
+    }
+
+    public Integer getValue(ASTNode node) {
+        return 10;
     }
 }

@@ -16,25 +16,23 @@ public class AddOrSubtractOperationHandler implements Handler {
     boolean rightOperandIsVariable;
     ASTNode leftOperand;
     ASTNode rightOperand;
-    private HashMap<String, ExpressionType> variableTypes;
+    private HANLinkedList<HashMap<String, Object>> symbolTable;
     private ArrayList<String> variableTypesInOperation;
 
-    public AddOrSubtractOperationHandler(HashMap<String, ExpressionType> variableTypes) {
+    public AddOrSubtractOperationHandler( HANLinkedList<HashMap<String, Object>> symbolTable) {
         variableTypesInOperation = new ArrayList<>();
-        this.variableTypes = variableTypes;
+        this.symbolTable = symbolTable;
     }
 
     @Override
     public void handle(ASTNode node) {
         setOperands(node);
-        if (rightOperandIsAddOrSubtractOperation(rightOperand)) {
-            if (!leftChildOperandIsEqualToLeftOperand(leftOperand, rightOperand) && !oneOrMoreOperandsIsVariableReference(leftOperand, rightOperand)) {
-                setError(node);
-            }
-        } else if (oneOrMoreOperandsIsVariableReference(leftOperand, rightOperand)) {
-//            setVariableTypesInOperation(leftOperand, rightOperand);
+        if (rightOperandIsAddOrSubtractOperation()) {
+            checkForUnequalChildOperand(node);
+        } else if (oneOrMoreOperandsIsVariableReference()) {
+            setVariableTypesInOperation();
             validate(node);
-        } else if (!operandsAreEqual(leftOperand, rightOperand)) {
+        } else if (!operandsAreEqual()) {
             setError(node);
         }
     }
@@ -44,37 +42,45 @@ public class AddOrSubtractOperationHandler implements Handler {
         rightOperand = node.getChildren().get(1);
     }
 
-    private boolean rightOperandIsAddOrSubtractOperation(ASTNode rightOperand) {
+    private boolean rightOperandIsAddOrSubtractOperation() {
         return rightOperand instanceof AddOperation || rightOperand instanceof SubtractOperation;
     }
 
-    private boolean leftChildOperandIsEqualToLeftOperand(ASTNode leftOperand, ASTNode rightOperand) {
+    private void checkForUnequalChildOperand(ASTNode node) {
+        if (leftChildOperandIsEqualToLeftOperand() || oneOrMoreOperandsIsVariableReference()) {
+            return;
+        }
+        setError(node);
+    }
+
+    private boolean leftChildOperandIsEqualToLeftOperand() {
         String leftOperandType = leftOperand.getClass().getSimpleName();
         String leftOperandTypeOfRightOperand = rightOperand.getChildren().get(0).getClass().getSimpleName();
 
         return leftOperandType.equals(leftOperandTypeOfRightOperand);
     }
 
-    private boolean oneOrMoreOperandsIsVariableReference(ASTNode leftOperand, ASTNode rightOperand) {
+    private boolean oneOrMoreOperandsIsVariableReference() {
         return leftOperand instanceof VariableReference || rightOperand instanceof VariableReference;
     }
 
-//    public void setVariableTypesInOperation(ASTNode leftOperand, ASTNode rightOperand) {
-//        String leftVariableName = getOperandAsString(leftOperand);
-//        String rightVariableName = getOperandAsString(rightOperand);
-//
-//        for (int i = 0; i < variableTypes.getSize(); i++) {
-//            if (variableTypes.get(i).containsKey(leftVariableName)) {
-//                variableTypesInOperation.add(variableTypes.get(i).get(leftVariableName).toString());
-//                leftOperandIsVariable = true;
-//            } else if (variableTypes.get(i).containsKey(rightVariableName)) {
-//                variableTypesInOperation.add(variableTypes.get(i).get(rightVariableName).toString());
-//                rightOperandIsVariable = true;
-//            }
-//        }
-//    }
+    public void setVariableTypesInOperation() {
+        String leftVariableName = getOperandAsString(leftOperand);
+        String rightVariableName = getOperandAsString(rightOperand);
 
-    private boolean operandsAreEqual(ASTNode leftOperand, ASTNode rightOperand) {
+        for (int i = 0; i < symbolTable.getSize(); i++) {
+            if (symbolTable.get(i).get("name").equals(leftVariableName)) {
+                variableTypesInOperation.add(symbolTable.get(i).get("type").toString());
+                leftOperandIsVariable = true;
+            }
+            if (symbolTable.get(i).get("name").equals(rightVariableName)) {
+                variableTypesInOperation.add(symbolTable.get(i).get("type").toString());
+                rightOperandIsVariable = true;
+            }
+        }
+    }
+
+    private boolean operandsAreEqual() {
         return leftOperand.getClass().getSimpleName().equals(rightOperand.getClass().getSimpleName());
     }
 
@@ -91,24 +97,27 @@ public class AddOrSubtractOperationHandler implements Handler {
         }
     }
 
-    public void compareExpressionTypes(ASTNode node) {
+    private void compareExpressionTypes(ASTNode node) {
         if (!variableTypesInOperation.get(0).equals(variableTypesInOperation.get(1))) {
             setError(node);
         }
     }
 
-    public void setError(ASTNode node) {
-        node.setError("IETS");
+    private void setError(ASTNode node) {
+        node.setError("Operands are not of equal type");
     }
 
-    public void compareExpressionTypeToLiteral(ASTNode node) {
+    private void compareExpressionTypeToLiteral(ASTNode node) {
         String literalType = getTypeOfLiteral();
+        if (variableTypesInOperation.size() == 0) {
+            return;
+        }
         if (!variableTypesInOperation.get(0).equals(literalType)) {
             setError(node);
         }
     }
 
-    public String getTypeOfLiteral() {
+    private String getTypeOfLiteral() {
         String literal = setCorrectLiteral();
         int endIndex = literal.indexOf("L");
 

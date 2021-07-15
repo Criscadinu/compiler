@@ -21,12 +21,12 @@ public class Calculator {
     private Queue<Object> output = new LinkedList<>();
     private Stack<Integer> operands = new Stack<>();
     private VariablesHandler handler = new VariablesHandler();
-    private HANLinkedList<HashMap<String, Object>> variableValues;
+    private HANLinkedList<HashMap<String, Object>> symbolTable;
 
     int precedence = 0;
 
-    public void setTokens(ASTNode node, HANLinkedList<HashMap<String, Object>> variableValues) {
-        this.variableValues = variableValues;
+    public void setTokens(ASTNode node, HANLinkedList<HashMap<String, Object>> symbolTable) {
+        this.symbolTable = symbolTable;
         arrangeTokens(node);
     }
 
@@ -53,10 +53,9 @@ public class Calculator {
 
     private void checkForVariableReferences(ASTNode operation) {
         for (ASTNode node : operation.getChildren()) {
-            if (!(node instanceof VariableReference)) {
-                return;
+            if (node instanceof VariableReference) {
+                output.add(handler.getValue(node));
             }
-//            output.add(handler.getValue(node));
         }
     }
 
