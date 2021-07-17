@@ -2,13 +2,11 @@ package nl.han.ica.icss.utils.comparator.calculator;
 
 import com.google.errorprone.annotations.Var;
 import nl.han.ica.datastructures.HANLinkedList;
-import nl.han.ica.icss.ast.ASTNode;
-import nl.han.ica.icss.ast.Literal;
-import nl.han.ica.icss.ast.Operation;
-import nl.han.ica.icss.ast.VariableReference;
+import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
+import nl.han.ica.icss.ast.types.ExpressionType;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.VariablesHandler;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,6 +18,7 @@ public class Calculator {
     private final Queue<Object> shuntingYardOutput = new LinkedList<>();
     private final Stack<Integer> operands = new Stack<>();
     private VariablesHandler handler;
+    private HashMap<Integer, ExpressionType> evaluationResults = new HashMap<>();
 
     int precedence = 0;
 

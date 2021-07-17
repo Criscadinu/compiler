@@ -33,11 +33,11 @@ public class VariablesHandler {
         HashMap<String, Object> variableDetails = new HashMap<>();
         variableDetails.put("name", name);
         variableDetails.put("value", getLiteralValue(type));
-        variableDetails.put("type", getType(type));
+        variableDetails.put("type", getTypeOfLiteral(type));
         symbolTable.addFirst(variableDetails);
     }
 
-    public ExpressionType getType(ASTNode expressionType) {
+    private ExpressionType getTypeOfLiteral(ASTNode expressionType) {
         ExpressionType type = ExpressionType.UNDEFINED;
         String variableType = expressionType.getClass().getSimpleName();
 
@@ -86,8 +86,26 @@ public class VariablesHandler {
         return value;
     }
 
+    private ExpressionType getTypeOfVariable(ASTNode variableNode) {
+        ExpressionType type = null;
+        for (int i = 0; i < symbolTable.getSize(); i++) {
+            if (symbolTable.get(i).get("name").equals(getVariableNameFrom(variableNode))) {
+                type = (ExpressionType) symbolTable.get(i).get("type");
+            }
+        }
+        return type;
+    }
+
     public String getVariableNameFrom(ASTNode variableReference) {
         int startingIndex = variableReference.toString().indexOf("(") + 1;
         return variableReference.toString().substring(startingIndex, variableReference.getNodeLabel().length());
+    }
+
+    public ExpressionType getTypeOf(ASTNode node) {
+        if (node instanceof VariableReference) {
+            return getTypeOfVariable(node);
+        } else {
+            return getTypeOfLiteral(node);
+        }
     }
 }

@@ -5,6 +5,7 @@ import nl.han.ica.icss.ast.operations.*;
 import nl.han.ica.icss.ast.properties.*;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.OperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.AddOrSubtractOperationHandler;
+import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.MultiplyOperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.VariablesHandler;
 import nl.han.ica.icss.utils.comparator.ColorComparator;
 import nl.han.ica.icss.utils.comparator.*;
@@ -29,7 +30,7 @@ public class Checker {
     private void validateNodes(ArrayList<ASTNode> nodes) {
         for(ASTNode node : nodes) {
             variablesHandler.checkForUndefinedVariables(node);
-            checkForUnApprovedOperations(node, variablesHandler);
+            checkForUnApprovedOperations(node);
 //            calculateSumOfOperation(node);
             checkForValidTypes(node);
 
@@ -37,12 +38,12 @@ public class Checker {
         }
     }
 
-    private void checkForUnApprovedOperations(ASTNode node, VariablesHandler variablesHandler) {
+    private void checkForUnApprovedOperations(ASTNode node) {
         if (node instanceof AddOperation || node instanceof SubtractOperation) {
             operationHandler.execute(node, new AddOrSubtractOperationHandler(this.variablesHandler));
         }
         else if (node instanceof MultiplyOperation){
-//            operationHandler.execute(node, new MultiplyOperationHandler(variableTypes));
+            operationHandler.execute(node, new MultiplyOperationHandler(this.variablesHandler));
         }
     }
 
