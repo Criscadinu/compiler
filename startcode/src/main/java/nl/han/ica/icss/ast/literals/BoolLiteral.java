@@ -4,17 +4,16 @@ import nl.han.ica.icss.ast.Literal;
 import java.util.Objects;
 
 public class BoolLiteral extends Literal {
-    public boolean value;
-
     public BoolLiteral(boolean value) {
-        this.value = value;
+        super.value = value;
     }
     public BoolLiteral(String text) {
         this.value = text.equals("TRUE");
     }
+
     @Override
     public String getNodeLabel() {
-        String textValue = value ? "TRUE" : "FALSE";
+        String textValue = (boolean) super.value ? "TRUE" : "FALSE";
         return "Bool Literal (" + textValue + ")";
     }
 

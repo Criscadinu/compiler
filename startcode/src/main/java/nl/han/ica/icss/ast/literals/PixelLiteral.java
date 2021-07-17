@@ -5,11 +5,10 @@ import nl.han.ica.icss.ast.Literal;
 import java.util.Objects;
 
 public class PixelLiteral extends Literal {
-    public int value;
-
     public PixelLiteral(int value) {
-        this.value = value;
+        super.value = value;
     }
+
     public PixelLiteral(String text) {
         this.value = Integer.parseInt(text.substring(0, text.length() - 2));
     }

@@ -5,11 +5,11 @@ import nl.han.ica.icss.ast.Literal;
 import java.util.Objects;
 
 public class ColorLiteral extends Literal {
-    public String value;
 
     public ColorLiteral(String value) {
-        this.value = value;
+        super.value = value;
     }
+
     @Override
     public String getNodeLabel() {
         return "Color literal (" + value + ")";

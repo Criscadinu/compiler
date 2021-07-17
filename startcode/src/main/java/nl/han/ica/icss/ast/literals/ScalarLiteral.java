@@ -5,10 +5,8 @@ import nl.han.ica.icss.ast.Literal;
 import java.util.Objects;
 
 public class ScalarLiteral extends Literal {
-    public int value;
-
     public ScalarLiteral(int value) {
-        this.value = value;
+        super.value = value;
     }
     public ScalarLiteral(String text) {
         this.value = Integer.parseInt(text);
