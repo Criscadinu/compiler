@@ -6,12 +6,11 @@ import nl.han.ica.icss.ast.types.ExpressionType;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VariablesHandler implements Handler{
+public class VariablesHandler {
     private final HANLinkedList<HashMap<String, Object>> symbolTable = new HANLinkedList<>();
     Map<String, ExpressionType> literalsMap = new HashMap<>();
 
-    @Override
-    public void handle(ASTNode node) {
+    public void checkForUndefinedVariables(ASTNode node) {
         setLiteralsMap();
         if (node instanceof VariableAssignment) {
             int startOfVariableName = 20;

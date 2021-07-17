@@ -16,18 +16,19 @@ public class AddOrSubtractOperationHandler implements Handler {
     boolean rightOperandIsVariable;
     ASTNode leftOperand;
     ASTNode rightOperand;
-    private HANLinkedList<HashMap<String, Object>> symbolTable;
-    private ArrayList<String> variableTypesInOperation;
+    private final HANLinkedList<HashMap<String, Object>> symbolTable;
+    private final ArrayList<String> variableTypesInOperation;
+    VariablesHandler handler;
 
-    public AddOrSubtractOperationHandler( HANLinkedList<HashMap<String, Object>> symbolTable) {
+    public AddOrSubtractOperationHandler(VariablesHandler handler) {
+        this.handler = handler;
         variableTypesInOperation = new ArrayList<>();
-        this.symbolTable = symbolTable;
+        this.symbolTable = handler.getSymbolTable();
     }
 
     @Override
     public void handle(ASTNode node) {
         setOperands(node);
-
         if (rightOperandIsAddOrSubtractOperation()) {
             checkForUnequalChildOperands(node);
         } else if (oneOrMoreOperandsIsVariableReference()) {
@@ -38,7 +39,7 @@ public class AddOrSubtractOperationHandler implements Handler {
         }
     }
 
-    public void setOperands(ASTNode node) {
+    private void setOperands(ASTNode node) {
         leftOperand = node.getChildren().get(0);
         rightOperand = node.getChildren().get(1);
     }
@@ -48,30 +49,29 @@ public class AddOrSubtractOperationHandler implements Handler {
     }
 
     private void checkForUnequalChildOperands(ASTNode node) {
-        if (!leftChildOperandIsEqualToLeftOperand()) {
+        if (!leftChildOperandIsEqualToLeftOperand() && !oneOrMoreOperandsIsVariableReference()) {
             setError(node);
         }
     }
 
     private boolean leftChildOperandIsEqualToLeftOperand() {
-        String leftOperandType = leftOperand.getClass().getSimpleName();
-        String leftOperandTypeOfRightOperand = rightOperand.getChildren().get(0).getClass().getSimpleName();
-        String name = getVariableNameFrom(leftOperand);
+        ExpressionType leftOperandType = handler.getType(leftOperand);
+        ExpressionType leftOperandTypeOfRightOperand = handler.getType(rightOperand.getChildren().get(0));
+        String name = getVariableNameFrom(rightOperand.getChildren().get(0));
 
         if (rightOperand.getChildren().get(0) instanceof VariableReference) {
-            String type = "";
+            ExpressionType type = null;
             for (int i = 0; i < symbolTable.getSize(); i++) {
                 if (symbolTable.get(i).get("name").equals(name)) {
-                    type = (String) symbolTable.get(i).get("type");
+                    type = (ExpressionType) symbolTable.get(i).get("type");
                 }
             }
             return leftOperandType.equals(type);
         }
-
         return leftOperandType.equals(leftOperandTypeOfRightOperand);
     }
 
-    public String getVariableNameFrom(ASTNode variableReference) {
+    private String getVariableNameFrom(ASTNode variableReference) {
         int startingIndex = variableReference.toString().indexOf("(") + 1;
         return variableReference.toString().substring(startingIndex, variableReference.getNodeLabel().length());
     }
@@ -82,7 +82,7 @@ public class AddOrSubtractOperationHandler implements Handler {
 
 
 
-    public void setVariableTypesInOperation() {
+    private void setVariableTypesInOperation() {
         String leftVariableName = getOperandAsString(leftOperand);
         String rightVariableName = getOperandAsString(rightOperand);
 
@@ -102,12 +102,12 @@ public class AddOrSubtractOperationHandler implements Handler {
         return leftOperand.getClass().getSimpleName().equals(rightOperand.getClass().getSimpleName());
     }
 
-    public String getOperandAsString(ASTNode node) {
+    private String getOperandAsString(ASTNode node) {
         int startingIndex = node.toString().indexOf("(") + 1;
         return node.toString().substring(startingIndex, node.getNodeLabel().length());
     }
 
-    public void validate(ASTNode node) {
+    private void validate(ASTNode node) {
         if (variableTypesInOperation.size() > 1) {
             compareExpressionTypes(node);
         } else {
@@ -142,7 +142,7 @@ public class AddOrSubtractOperationHandler implements Handler {
         return literal.substring(0, endIndex).toUpperCase();
     }
 
-    public String setCorrectLiteral() {
+    private String setCorrectLiteral() {
         String literal = "";
 
         if (leftOperandIsVariable) {
@@ -152,5 +152,4 @@ public class AddOrSubtractOperationHandler implements Handler {
         }
         return literal;
     }
-
 }

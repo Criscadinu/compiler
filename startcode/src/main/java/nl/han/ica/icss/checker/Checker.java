@@ -28,18 +28,18 @@ public class Checker {
 
     private void validateNodes(ArrayList<ASTNode> nodes) {
         for(ASTNode node : nodes) {
-            variablesHandler.handle(node);
-            checkForUnApprovedOperations(node);
-            calculateSumOfOperation(node);
+            variablesHandler.checkForUndefinedVariables(node);
+            checkForUnApprovedOperations(node, variablesHandler);
+//            calculateSumOfOperation(node);
             checkForValidTypes(node);
 
             validateNodes(node.getChildren());
         }
     }
 
-    private void checkForUnApprovedOperations(ASTNode node) {
+    private void checkForUnApprovedOperations(ASTNode node, VariablesHandler variablesHandler) {
         if (node instanceof AddOperation || node instanceof SubtractOperation) {
-            operationHandler.execute(node, new AddOrSubtractOperationHandler(variablesHandler.getSymbolTable()));
+            operationHandler.execute(node, new AddOrSubtractOperationHandler(this.variablesHandler));
         }
         else if (node instanceof MultiplyOperation){
 //            operationHandler.execute(node, new MultiplyOperationHandler(variableTypes));
