@@ -5,7 +5,6 @@ import nl.han.ica.icss.ast.ASTNode;
 import nl.han.ica.icss.ast.Literal;
 import nl.han.ica.icss.ast.Operation;
 import nl.han.ica.icss.ast.VariableReference;
-import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
@@ -21,9 +20,11 @@ public class AddOrSubtractOperationHandler implements Handler {
     private final HANLinkedList<HashMap<String, Object>> symbolTable;
     private final ArrayList<String> variableTypesInOperation;
     VariablesHandler handler;
+    MultiplicationOperationHandler multiplicationOperationHandler;
 
     public AddOrSubtractOperationHandler(VariablesHandler handler) {
         this.handler = handler;
+        multiplicationOperationHandler = new MultiplicationOperationHandler(handler);
         variableTypesInOperation = new ArrayList<>();
         this.symbolTable = handler.getSymbolTable();
     }
@@ -63,18 +64,18 @@ public class AddOrSubtractOperationHandler implements Handler {
         checkForUnequalChildOperands(node);
     }
 
+    private void checkForUnequalChildOperands(ASTNode node) {
+        if (!leftChildOperandIsEqualToLeftOperand() && !oneOrMoreOperandsIsVariableReference()) {
+            setError(node);
+        }
+    }
+
     private void startMultiplicationValidation(ASTNode node) {
         ASTNode comparisonNode = node.getChildren().get(0);
         ASTNode multiplicationNode = node.getChildren().get(1);
-        compareTypes(node, handler.getTypeOf(comparisonNode), evaluateMultiplication(multiplicationNode));
-    }
+        ExpressionType multiplicationExpressionType = multiplicationOperationHandler.getEvaluatedExpressionType(multiplicationNode);
 
-    private ExpressionType evaluateMultiplication(ASTNode multiplicationNode) {
-        ExpressionType multiplicationNodeLeftType = handler.getTypeOf(multiplicationNode.getChildren().get(0));
-        ExpressionType multiplicationNodeRightType = handler.getTypeOf(multiplicationNode.getChildren().get(1));
-        //hier nog eerst checken op uberhaupt valide multiplication( oftewel minimaal scalar)
-
-        return multiplicationNodeLeftType == ExpressionType.SCALAR ? multiplicationNodeRightType : multiplicationNodeLeftType;
+        compareTypes(node, handler.getTypeOf(comparisonNode), multiplicationExpressionType);
     }
 
     private void compareTypes(ASTNode node, ExpressionType comparisonNode, ExpressionType multiplicationNode) {
@@ -89,15 +90,6 @@ public class AddOrSubtractOperationHandler implements Handler {
 
     private boolean rightOperandIsMultiplyOperation() {
         return rightOperand instanceof MultiplyOperation;
-    }
-
-
-    private void checkForUnequalChildOperands(ASTNode node) {
-        if (!(rightOperand instanceof MultiplyOperation)) {
-            if (!leftChildOperandIsEqualToLeftOperand() && !oneOrMoreOperandsIsVariableReference()) {
-                setError(node);
-            }
-        }
     }
 
     private boolean leftChildOperandIsEqualToLeftOperand() {

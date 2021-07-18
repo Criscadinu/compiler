@@ -5,7 +5,7 @@ import nl.han.ica.icss.ast.operations.*;
 import nl.han.ica.icss.ast.properties.*;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.OperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.AddOrSubtractOperationHandler;
-import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.MultiplyOperationHandler;
+import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.MultiplicationOperationHandler;
 import nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers.VariablesHandler;
 import nl.han.ica.icss.utils.comparator.ColorComparator;
 import nl.han.ica.icss.utils.comparator.*;
@@ -43,7 +43,7 @@ public class Checker {
             operationHandler.execute(node, new AddOrSubtractOperationHandler(this.variablesHandler));
         }
         else if (node instanceof MultiplyOperation){
-            operationHandler.execute(node, new MultiplyOperationHandler(this.variablesHandler));
+            operationHandler.execute(node, new MultiplicationOperationHandler(this.variablesHandler));
         }
     }
 
