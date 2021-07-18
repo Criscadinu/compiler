@@ -3,12 +3,17 @@ package nl.han.ica.icss.handler.typeHandlers.operationHandler.handlers;
 import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.types.ExpressionType;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class VariablesHandler {
     private final HANLinkedList<HashMap<String, Object>> symbolTable = new HANLinkedList<>();
     Map<String, ExpressionType> literalsMap = new HashMap<>();
+    boolean rightOperandIsVariable;
+    boolean leftOperandIsVariable;
+    private final ArrayList<String> variableTypesInOperation = new ArrayList<>();
 
     public void checkForUndefinedVariables(ASTNode node) {
         setLiteralsMap();
@@ -107,5 +112,40 @@ public class VariablesHandler {
         } else {
             return getTypeOfLiteral(node);
         }
+    }
+
+    public void setVariableTypesInOperation(ASTNode leftOperand, ASTNode rightOperand) {
+        String leftVariableName = "";
+        String rightVariableName = "";
+        if (leftOperand instanceof VariableReference) {
+            leftVariableName = getOperandAsString(leftOperand);
+        }
+        if (rightOperand instanceof VariableReference) {
+            rightVariableName = getOperandAsString(rightOperand);
+        }
+
+        for (int i = 0; i < symbolTable.getSize(); i++) {
+            if (symbolTable.get(i).get("name").equals(leftVariableName)) {
+                variableTypesInOperation.add(symbolTable.get(i).get("type").toString());
+                leftOperandIsVariable = true;
+            }
+            if (symbolTable.get(i).get("name").equals(rightVariableName)) {
+                variableTypesInOperation.add(symbolTable.get(i).get("type").toString());
+                rightOperandIsVariable = true;
+            }
+        }
+    }
+
+    private String getOperandAsString(ASTNode node) {
+        int startingIndex = node.toString().indexOf("(") + 1;
+        return node.toString().substring(startingIndex, node.getNodeLabel().length());
+    }
+
+    public ArrayList<String> getVariableTypesInOperation() {
+        return variableTypesInOperation;
+    }
+
+    public boolean oneOrMoreOperandsIsVariableReference(ASTNode leftOperand, ASTNode rightOperand) {
+        return leftOperand instanceof VariableReference || rightOperand instanceof VariableReference;
     }
 }

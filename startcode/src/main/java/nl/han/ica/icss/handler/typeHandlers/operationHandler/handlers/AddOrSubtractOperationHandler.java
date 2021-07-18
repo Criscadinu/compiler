@@ -9,23 +9,19 @@ import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AddOrSubtractOperationHandler implements Handler {
     boolean leftOperandIsVariable;
-    boolean rightOperandIsVariable;
     ASTNode leftOperand;
     ASTNode rightOperand;
     private final HANLinkedList<HashMap<String, Object>> symbolTable;
-    private final ArrayList<String> variableTypesInOperation;
     VariablesHandler handler;
     MultiplicationOperationHandler multiplicationOperationHandler;
 
     public AddOrSubtractOperationHandler(VariablesHandler handler) {
         this.handler = handler;
         multiplicationOperationHandler = new MultiplicationOperationHandler(handler);
-        variableTypesInOperation = new ArrayList<>();
         this.symbolTable = handler.getSymbolTable();
     }
 
@@ -35,7 +31,7 @@ public class AddOrSubtractOperationHandler implements Handler {
         if (rightOperandIsOperation()) {
             startValidatingOperation(node);
         } else if (oneOrMoreOperandsIsVariableReference()) {
-            setVariableTypesInOperation();
+            handler.setVariableTypesInOperation(leftOperand, rightOperand);
             validate(node);
         } else if (!operandsAreEqual()) {
             setError(node);
@@ -118,39 +114,12 @@ public class AddOrSubtractOperationHandler implements Handler {
         return leftOperand instanceof VariableReference || rightOperand instanceof VariableReference;
     }
 
-    private void setVariableTypesInOperation() {
-        String leftVariableName = "";
-        String rightVariableName = "";
-        if (leftOperand instanceof VariableReference) {
-            leftVariableName = getOperandAsString(leftOperand);
-        }
-        if (rightOperand instanceof VariableReference) {
-            rightVariableName = getOperandAsString(rightOperand);
-        }
-
-        for (int i = 0; i < symbolTable.getSize(); i++) {
-            if (symbolTable.get(i).get("name").equals(leftVariableName)) {
-                variableTypesInOperation.add(symbolTable.get(i).get("type").toString());
-                leftOperandIsVariable = true;
-            }
-            if (symbolTable.get(i).get("name").equals(rightVariableName)) {
-                variableTypesInOperation.add(symbolTable.get(i).get("type").toString());
-                rightOperandIsVariable = true;
-            }
-        }
-    }
-
     private boolean operandsAreEqual() {
         return leftOperand.getClass().getSimpleName().equals(rightOperand.getClass().getSimpleName());
     }
 
-    private String getOperandAsString(ASTNode node) {
-        int startingIndex = node.toString().indexOf("(") + 1;
-        return node.toString().substring(startingIndex, node.getNodeLabel().length());
-    }
-
     private void validate(ASTNode node) {
-        if (variableTypesInOperation.size() > 1) {
+        if (handler.getVariableTypesInOperation().size() > 1) {
             compareExpressionTypes(node);
         } else if (oneOrMoreOperandsIsLiteral()) {
             compareExpressionTypeToLiteral(node);
@@ -162,7 +131,7 @@ public class AddOrSubtractOperationHandler implements Handler {
     }
 
     private void compareExpressionTypes(ASTNode node) {
-        if (!variableTypesInOperation.get(0).equals(variableTypesInOperation.get(1))) {
+        if (!handler.getVariableTypesInOperation().get(0).equals(handler.getVariableTypesInOperation().get(1))) {
             setError(node);
         }
     }
@@ -173,10 +142,10 @@ public class AddOrSubtractOperationHandler implements Handler {
 
     private void compareExpressionTypeToLiteral(ASTNode node) {
         String literalType = getTypeOfLiteral();
-        if (variableTypesInOperation.size() == 0) {
+        if (handler.getVariableTypesInOperation().size() == 0) {
             return;
         }
-        if (!variableTypesInOperation.get(0).equals(literalType)) {
+        if (!handler.getVariableTypesInOperation().get(0).equals(literalType)) {
             setError(node);
         }
     }
